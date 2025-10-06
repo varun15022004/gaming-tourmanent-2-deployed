@@ -2,10 +2,11 @@ import { Gamepad2, User, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
-  onAuthClick: () => void;
+  onRegisterClick: () => void;
+  onAdminClick?: () => void;
 }
 
-export const Header = ({ onAuthClick }: HeaderProps) => {
+export const Header = ({ onRegisterClick, onAdminClick }: HeaderProps) => {
   const { user, student, signOut } = useAuth();
 
   return (
@@ -23,6 +24,15 @@ export const Header = ({ onAuthClick }: HeaderProps) => {
 
           {user ? (
             <div className="flex items-center space-x-4">
+              {student?.is_admin && (
+                <button
+                  onClick={onAdminClick}
+                  className="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-lg transition font-medium"
+                >
+                  Admin
+                </button>
+              )}
+
               <div className="flex items-center space-x-2 bg-slate-800 px-4 py-2 rounded-lg">
                 <User size={18} />
                 <span className="text-sm">{student?.full_name || user.email}</span>
@@ -36,12 +46,20 @@ export const Header = ({ onAuthClick }: HeaderProps) => {
               </button>
             </div>
           ) : (
-            <button
-              onClick={onAuthClick}
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition font-medium"
-            >
-              Register
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={onAdminClick}
+                className="bg-amber-500 hover:bg-amber-600 px-6 py-2 rounded-lg transition font-medium"
+              >
+                Admin
+              </button>
+              <button
+                onClick={onRegisterClick}
+                className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition font-medium"
+              >
+                Register
+              </button>
+            </div>
           )}
         </nav>
       </div>

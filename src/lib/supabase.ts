@@ -16,6 +16,7 @@ export interface Student {
   full_name: string;
   college_id?: string;
   game_preferences: string[];
+  is_admin?: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -6,6 +6,9 @@
   [build.environment]
     NODE_VERSION = "20"
 
+[functions]
+  directory = "netlify/functions"
+
 # SPA fallback so client-side routing works (safe even if you don’t use it yet)
 [[redirects]]
   from = "/*"

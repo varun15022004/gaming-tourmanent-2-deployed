@@ -1,26 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Dashboard } from './components/Dashboard';
 import { AuthModal } from './components/AuthModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AdminDashboard } from './components/AdminDashboard';
 
 
 function AppContent() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const { user } = useAuth();
+
+  // Auto-open dashboard after successful sign-in/sign-up
+  useEffect(() => {
+    if (user) {
+      setShowDashboard(true);
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onAuthClick={() => setIsAuthModalOpen(true)} />
+      <Header
+        onRegisterClick={() => {
+          setIsAuthModalOpen(true);
+        }}
+        onAdminClick={() => setShowAdmin(true)}
+      />
 
-      {user && showDashboard ? (
+      {user && showAdmin ? (
+        <AdminDashboard onClose={() => setShowAdmin(false)} />
+      ) : user && showDashboard ? (
         <Dashboard />
       ) : (
         <>
-          <Hero onJoinClick={() => user ? setShowDashboard(true) : setIsAuthModalOpen(true)} />
+          <Hero onJoinClick={() => (setIsAuthModalOpen(true))} />
 
 
 

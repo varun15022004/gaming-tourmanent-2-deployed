@@ -6,7 +6,13 @@ interface AuthContextType {
   user: User | null;
   student: Student | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, collegeId?: string) => Promise<{ error: AuthError | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    collegeId?: string,
+    gamePreferences?: string[]
+  ) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Student>) => Promise<{ error: Error | null }>;
@@ -84,6 +90,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Create a minimal profile if not exists
         const fullNameFromMeta = (u.user_metadata as any)?.full_name as string | undefined;
         const collegeIdFromMeta = (u.user_metadata as any)?.college_id as string | undefined;
+        const gamesFromMeta = (u.user_metadata as any)?.game_preferences as string[] | undefined;
+        const gamePrefs = Array.isArray(gamesFromMeta) ? gamesFromMeta : [];
         const { error: insertError } = await supabase
           .from('students')
           .insert({
@@ -91,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: u.email,
             full_name: fullNameFromMeta || (u.email ?? 'New User'),
             college_id: collegeIdFromMeta || null,
+            game_preferences: gamePrefs,
           });
         if (insertError) throw insertError;
       }
@@ -99,7 +108,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, collegeId?: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    collegeId?: string,
+    gamePreferences: string[] = []
+  ) => {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -108,6 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             full_name: fullName,
             college_id: collegeId || null,
+            game_preferences: gamePreferences,
           },
         },
       });

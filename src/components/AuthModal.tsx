@@ -5,18 +5,17 @@ import { useAuth } from '../contexts/AuthContext';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'signin' | 'signup';
 }
 
-export const AuthModal = ({ isOpen, onClose, initialMode = 'signup' }: AuthModalProps) => {
-  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
+export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [collegeId, setCollegeId] = useState('');
+  const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signUp } = useAuth();
 
   if (!isOpen) return null;
 
@@ -26,26 +25,22 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signup' }: AuthModal
     setLoading(true);
 
     try {
-      if (mode === 'signin') {
-        const { error } = await signIn(email, password);
-        if (error) {
-          setError(error.message);
-        } else {
-          onClose();
-        }
-      } else {
         if (!fullName.trim()) {
           setError('Full name is required');
           setLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, fullName, collegeId);
+        if (selectedGames.length < 1) {
+          setError('Please select at least one game');
+          setLoading(false);
+          return;
+        }
+        const { error } = await signUp(email, password, fullName, collegeId, selectedGames);
         if (error) {
           setError(error.message);
         } else {
           onClose();
         }
-      }
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
@@ -64,12 +59,11 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signup' }: AuthModal
         </button>
 
         <h2 className="text-2xl font-bold mb-6">
-          {mode === 'signin' ? 'Sign In' : 'Register'}
+          Register
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'signup' && (
-            <>
+          <>
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                   Full Name *
@@ -96,8 +90,43 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signup' }: AuthModal
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+
+              <div>
+                <p className="block text-sm font-medium text-gray-700 mb-2">Select your games (choose any)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    'PUBG Mobile',
+                    'Call of Duty Mobile',
+                    'Free Fire',
+                  ].map((game) => {
+                    const active = selectedGames.includes(game);
+                    return (
+                      <button
+                        key={game}
+                        type="button"
+                        onClick={() => {
+                          setSelectedGames((prev) =>
+                            prev.includes(game)
+                              ? prev.filter((g) => g !== game)
+                              : [...prev, game]
+                          );
+                        }}
+                        className={
+                          `w-full px-4 py-3 rounded-lg border text-sm font-medium transition ` +
+                          (active
+                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 bg-white hover:bg-gray-50')
+                        }
+                        aria-pressed={active}
+                      >
+                        {game}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">You can register for all, any two, or any one.</p>
+              </div>
             </>
-          )}
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -139,33 +168,10 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signup' }: AuthModal
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Processing...' : mode === 'signin' ? 'Sign In' : 'Register'}
+            {loading ? 'Processing...' : 'Register'}
           </button>
         </form>
 
-        <div className="mt-4 text-center text-sm">
-          {mode === 'signin' ? (
-            <p>
-              Don't have an account?{' '}
-              <button
-                onClick={() => setMode('signup')}
-                className="text-blue-600 hover:underline"
-              >
-                Register
-              </button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{' '}
-              <button
-                onClick={() => setMode('signin')}
-                className="text-blue-600 hover:underline"
-              >
-                Sign In
-              </button>
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );
